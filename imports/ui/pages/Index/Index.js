@@ -1,93 +1,66 @@
 import React from 'react';
-import { Button } from 'react-bootstrap';
+import { Button, Table, Alert } from 'react-bootstrap';
 import styled from 'styled-components';
-import { lighten, darken } from 'polished';
+import { Random } from 'meteor/random';
 
-const StyledIndex = styled.div`
-  padding: 20px;
-  background: var(--cb-blue);
-  text-align: center;
-  border-radius: 3px;
-  color: #fff;
+class Index extends React.Component {
+  state = {
+    environmentVariables: [],
+  };
 
-  img {
-    width: 100px;
-    height: auto;
-  }
+  handleUpdateEnvironmentVariable = (_id, field, value) => {
+    const environmentVariables = [...this.state.environmentVariables];
+    const variableToUpdate = environmentVariables.find((variable) => variable._id === _id);
+    variableToUpdate[field] = value;
+    this.setState({ environmentVariables });
+  };
 
-  h1 {
-    font-size: 28px;
-  }
+  handleDeleteEnvironmentVariable = (_id) => {
+    const environmentVariables = [...this.state.environmentVariables].filter((variable) => variable._id !== _id);
+    this.setState({ environmentVariables });
+  };
 
-  p {
-    font-size: 18px;
-    color: ${lighten(0.25, '#4285F4')};
-  }
+  addEnvironmentVariable = () => {
+    const environmentVariables = [...this.state.environmentVariables];
+    environmentVariables.push({
+      _id: Random.id(),
+      key: '',
+      value: '',
+    });
+    this.setState({ environmentVariables });
+  };
 
-  > div {
-    display: inline-block;
-    margin: 10px 0 0;
-
-    .btn:first-child {
-      margin-right: 10px;
-    }
-
-    .btn {
-      border: none;
-    }
-  }
-
-  footer {
-    margin: 20px -20px -20px;
-    border-top: 1px solid ${darken(0.1, '#4285F4')};
-    padding: 20px;
-
-    p {
-      font-size: 14px;
-      line-height: 22px;
-      color: ${lighten(0.35, '#4285F4')};
-      margin: 0;
-    }
-
-    p a {
-      color: ${lighten(0.35, '#4285F4')};
-      text-decoration: underline;
-    }
-  }
-
-  @media screen and (min-width: 768px) {
-    padding: 30px;
-
-    footer {
-      margin: 30px -30px -30px;
-    }
-  }
-
-  @media screen and (min-width: 992px) {
-    padding: 40px;
-
-    footer {
-      margin: 40px -40px -40px;
-    }
-  }
-`;
-
-const Index = () => (
-  <StyledIndex>
-    <img
-      src="https://s3-us-west-2.amazonaws.com/cleverbeagle-assets/graphics/email-icon.png"
-      alt="Clever Beagle"
-    />
-    <h1>Pup</h1>
-    <p>A boilerplate for products.</p>
-    <div>
-      <Button href="http://cleverbeagle.com/pup">Read the Docs</Button>
-      <Button href="https://github.com/cleverbeagle/pup"><i className="fa fa-star" /> Star on GitHub</Button>
-    </div>
-    <footer>
-      <p>Want to ensure that your product sees the light of day? <a href="https://cleverbeagle.com?utm_source=pup&utm_medium=app&utm_campaign=oss">Work with Clever Beagle</a>.</p>
-    </footer>
-  </StyledIndex>
-);
+  render() {
+    return (
+      <div>
+        {this.state.environmentVariables.length > 0 ? <Table bordered>
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Value</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {this.state.environmentVariables.map(({ _id, key, value }) => (
+              <tr key={_id}>
+                <td>
+                  <input type="text" name="envKey" value={key} onChange={(event) => this.handleUpdateEnvironmentVariable(_id, 'key', event.target.value)} className="form-control" placeholder="ENV_VAR" />
+                </td>
+                <td>
+                  <input type="text" name="envValue" value={value} onChange={(event) => this.handleUpdateEnvironmentVariable(_id, 'value', event.target.value)} className="form-control" placeholder="Variable value goes here..." />
+                </td>
+                <td>
+                  <Button bsStyle="danger" onClick={() => this.handleDeleteEnvironmentVariable(_id)} block>Delete</Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table> : <Alert bsStyle="warning">No environment variables yet!</Alert>}
+        <Button bsStyle="success" onClick={this.addEnvironmentVariable}>Add Environment Variables</Button>
+      </div>
+    );
+  } 
+}
 
 export default Index;
